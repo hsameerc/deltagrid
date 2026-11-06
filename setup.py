@@ -107,13 +107,18 @@ except ImportError:
     print("torch not found during setup; skipping C++ extension build.")
 
 setup(
-    name='hsru-delta',
+    name='deltagrid',
     version='0.2.0',
-    description='HSRU DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture',
+    description='DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture',
     author="Sameer Humagain",
     author_email="im@hsameer.com.np",
     license="MIT",
     packages=[
+        'deltagrid',
+        'deltagrid.ops',
+        'deltagrid.modules',
+        'deltagrid.models',
+        'deltagrid.core',
         'hsru_delta',
         'hsru_delta.ops',
         'hsru_delta.modules',
@@ -121,6 +126,7 @@ setup(
         'hsru_delta.core',
     ],
     package_dir={
+        'deltagrid': 'src',
         'hsru_delta': 'src',
     },
     ext_modules=ext_modules,

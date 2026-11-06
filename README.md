@@ -1,4 +1,4 @@
-# HSRU DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture
+# DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture
 
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
 [![CUDA](https://img.shields.io/badge/CUDA-11.8%20%7C%2012.x-76b900.svg)](https://developer.nvidia.com/cuda-zone)
@@ -6,11 +6,11 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-14%2F14%20Passed%20(100%25)-brightgreen.svg)]()
 [![Inference RAM](https://img.shields.io/badge/Inference%20RAM-Strict%20O(1)%20Zero--KV-blueviolet.svg)]()
-[![SRAM Residency](https://img.shields.io/badge/SRAM%20Residency-100%25%20On--Chip-orange.svg)]()
+[![SRAM Residency](https://img.shields.io/badge/SRAM%20Residency-100%25%20On--Chip%20(Dense)%20%7C%208%20KB%20Window-orange.svg)]()
 
-**HSRU DeltaGrid** is a linear-complexity, zero-KV-cache recurrent neural foundation architecture designed for ultra-long context language modeling, sub-millisecond continuous robotics control, and physical telemetry forecasting.
+**DeltaGrid** is a linear-complexity, zero-KV-cache recurrent neural foundation architecture designed for ultra-long context language modeling, sub-millisecond continuous robotics control, and physical telemetry forecasting.
 
-DeltaGrid replaces the quadratic $O(T^2)$ computational complexity and memory-exploding $O(T)$ Key-Value cache of standard Transformers with an **error-erasing closed-loop associative memory rule** operating in **strictly constant $O(1)$ RAM** and **100% on-chip GPU SRAM residency**.
+DeltaGrid replaces the quadratic $O(T^2)$ computational complexity and memory-exploding $O(T)$ Key-Value cache of standard Transformers with an **error-erasing closed-loop associative memory rule** operating in **strictly constant $O(1)$ RAM**, featuring **100% on-chip GPU register/SRAM residency** for dense states ($\le 256$ slots) and a **strict 8 KB active SRAM compute window** for 1,048,576-slot Sparse Delta-PKM.
 
 ---
 
@@ -50,16 +50,23 @@ $$
 \|\mathbf{w}_{k,\text{active}}\|_2 = \prod_{i=1}^N \|\hat{\mathbf{u}}_i\|_2 = 1.0^N = 1.0 \implies \mathbf{w}_{k,\text{active}}^\top \mathbf{S}_t = \mathbf{v}_t
 $$
 
-- **Strict 8 KB SRAM Residency:** By routing to Top-$K$ bins per axis (e.g. $8 \times 8 = 64$ active slots), the active recurrent state remains strictly bounded in GPU registers and on-chip SRAM ($64 \times 64 \times 2\text{ bytes} = 8\text{ KB}$), achieving a **~250x – 260x speedup** over PyTorch loops (257.8x measured on NVIDIA RTX 3060).
+- **Strict 8 KB Active SRAM Window:** By routing to Top-$K$ bins per axis (e.g. $8 \times 8 = 64$ active slots), the active recurrent compute slice remains strictly bounded in GPU hardware registers and on-chip SRAM ($64 \times 64 \times 2\text{ bytes} = 8\text{ KB}$), achieving a **~250x – 260x speedup** over PyTorch loops (257.8x measured on NVIDIA RTX 3060).
 - **Massive Associative Recall:** Successfully retains 1,000+ distinct facts sequentially with **99.89% mean cosine similarity** and 100% high-fidelity recall.
 
 ### 2. Strict $O(1)$ Inference RAM (Zero KV-Cache)
 - Memory consumption remains completely static from token 1 to token 1,000,000+.
 - Eliminates out-of-memory crashes during decoding. At 4,096 tokens, DeltaGrid uses **12.5x less memory** than a standard Transformer, unlocking extreme concurrent batch sizes on a single GPU.
 
-### 3. 100% On-Chip SRAM Residency (Bypassing the DRAM Wall)
-- Head memory states $\mathbf{S} \in \mathbb{R}^{\text{Slots} \times D_h}$ require only **4 KB – 32 KB per head** (FP16), fitting entirely inside GPU hardware register files and on-chip Shared Memory (e.g., NVIDIA H100 with 228 KB SRAM per SM).
-- **Zero DRAM roundtrips** during state recurrence, executing at peak arithmetic throughput.
+### 3. Hardware-Mapped Memory Hierarchy (Register & SRAM Residency)
+DeltaGrid is architected from the silicon up to bypass the memory bandwidth bottleneck (the "DRAM Memory Wall") by strictly bounding recurrent compute within on-chip GPU hardware registers and SRAM:
+- **Standard Dense Mode ($\text{Slots} \le 256$): 100% Permanent On-Chip State Residency**
+  - Full head memory states $\mathbf{S} \in \mathbb{R}^{\text{Slots} \times D_h}$ require only **4 KB – 32 KB per head** (FP16).
+  - Resident entirely inside GPU hardware thread registers (`float s_reg[SLOTS]`) and on-chip Shared Memory / L1 SRAM (e.g., NVIDIA H100 with 228 KB SRAM per SM).
+  - **Zero DRAM roundtrips:** State remains resident on-chip across all $T$ timesteps, executing barrier-free at peak hardware clock speed.
+- **Sparse Delta-PKM Mode ($1,048,576$ Virtual Slots): Strict 8 KB Active SRAM Window**
+  - While the massive 1M-slot global knowledge store ($128\text{ MB}$ per head) is hosted in VRAM DRAM, **token recurrence never executes a dense 128 MB matrix operation**.
+  - At each token step $t$, the coordinate router indexes strictly the active $K_1 \times K_2 = 64$ slots (**8 KB FP16**) into on-chip registers/SRAM.
+  - Closed-loop Householder read, error residual erasure, and delta update execute at register speed before coalesced scattering back to VRAM.
 
 ### 4. Closed-Loop Error-Erasing Delta Recurrence
 Unlike classical additive RNNs (LSTMs/GRUs) which suffer catastrophic forgetting, DeltaGrid continuously computes the key-prediction error before writing:
@@ -207,6 +214,11 @@ DeltaGrid's state layout maps directly into modern GPU memory tiers:
 | **256** | **32 KB** | GPU Shared Memory (SRAM Limit: 48–228 KB) | High Throughput (~8,000 tok/s) |
 | **1,048,576** | **128 MB** | VRAM DRAM (Requires Top-$K$ Sparse Routing) | Large-Scale World Knowledge Base |
 
+> [!TIP]
+> **Physical Memory Mapping Architecture:**
+> - **Dense Modes ($\le 256$ slots):** The **entire recurrent state matrix** stays permanently resident in GPU hardware registers or Shared Memory SRAM throughout sequence generation — achieving true **zero DRAM roundtrips**.
+> - **Massive Delta-PKM ($1,048,576$ slots):** The **backing storage table** ($128\text{ MB}$) is allocated in VRAM DRAM, but the **compute recurrence is strictly 8 KB register/SRAM resident**: only the dynamically routed $64$ active slots are gathered into on-chip registers for the Householder delta update, eliminating dense memory-bandwidth bottlenecks.
+
 ---
 
 ## Installation & Setup
@@ -223,8 +235,8 @@ DeltaGrid's state layout maps directly into modern GPU memory tiers:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/hsameerc/hsru-delta.git
-cd hsru-delta
+git clone https://github.com/hsameerc/deltagrid.git
+cd deltagrid
 
 # 2. Install PyTorch with CUDA support (e.g., CUDA 12.4 or 12.1; no torchvision/torchaudio required)
 pip install torch --index-url https://download.pytorch.org/whl/cu124
@@ -248,7 +260,7 @@ pip install -e . --no-build-isolation
 
 ```python
 import torch
-from hsru_delta import DeltaGridLayer  # or: from src import DeltaGridLayer
+from deltagrid import DeltaGridLayer  # or: from src import DeltaGridLayer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -278,7 +290,7 @@ print(f"Router coordinate entropy: {entropy.item():.3f} nats")
 
 ```python
 import torch
-from hsru_delta import DeltaGridLM  # or: from src import DeltaGridLM
+from deltagrid import DeltaGridLM  # or: from src import DeltaGridLM
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -312,7 +324,7 @@ print(f"Generated {len(generated)} tokens in constant memory!")
 
 ```python
 import torch
-from hsru_delta import DeltaGridContinuous  # or: from src import DeltaGridContinuous
+from deltagrid import DeltaGridContinuous  # or: from src import DeltaGridContinuous
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -340,7 +352,7 @@ future_trajectory = controller.forecast(history, forecast_steps=32)
 
 ```python
 import torch
-from hsru_delta import DeltaGridBlock  # or: from src import DeltaGridBlock
+from deltagrid import DeltaGridBlock  # or: from src import DeltaGridBlock
 
 # Embed the complete 4-tier block inside custom models:
 block = DeltaGridBlock(
@@ -361,7 +373,7 @@ out, new_mem, new_conv = block(x, thinking_cycles=2)
 ### 5. Standalone C++ Edge Export (`FP32`, `INT8`, `Q16.16 Fixed-Point`)
 
 ```python
-from hsru_delta import DeltaGridContinuous, DeltaGridLM, export_deltagrid_to_bin
+from deltagrid import DeltaGridContinuous, DeltaGridLM, export_deltagrid_to_bin
 
 # Export Continuous Controller to FP32 or Q16.16 Fixed-Point (.bin)
 controller = DeltaGridContinuous(input_dim=12, output_dim=6, d_model=64, num_layers=2, forecast_horizon=8).eval()
@@ -417,7 +429,7 @@ python benchmarks/plot_figures.py
 ```
 
 <p align="center">
-  <img src="figures/rigorous_dashboard.png" alt="HSRU DeltaGrid Rigorous Benchmarks Dashboard" width="100%">
+  <img src="figures/rigorous_dashboard.png" alt="DeltaGrid Rigorous Benchmarks Dashboard" width="100%">
 </p>
 <p align="center"><em>Figure 1: Empirical multi-seed benchmarks against parameter-matched Transformers, LSTMs, and GRUs (MQAR associative recall, Needle-in-a-Haystack up to 2,048 tokens, Adding Problem, Continuous Wave Forecasting, Strict O(1) Memory Scaling up to 65,536 tokens, and Byte-level Language Modeling).</em></p>
 
@@ -426,8 +438,8 @@ python benchmarks/plot_figures.py
 ## Repository Structure
 
 ```
-hsru-delta/
-├── src/                                # Core Neural Engine (installed as hsru_delta package)
+deltagrid/
+├── src/                                # Core Neural Engine (installed as deltagrid package)
 │   ├── __init__.py                     # Clean Public API (__all__)
 │   ├── config.py                       # DeltaGridConfig (Dataclass + Strict Validation)
 │   ├── state.py                        # DeltaGridState & LayerState (TBPTT Detach Container)
@@ -504,13 +516,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Citation
 
-If you use HSRU DeltaGrid or its factorized Kronecker memory architecture in your research, please cite:
+If you use DeltaGrid or its factorized Kronecker memory architecture in your research, please cite:
 
 ```bibtex
-@software{hsru_deltagrid_2026,
+@software{deltagrid_2026,
   author = {Humagain, Sameer},
-  title  = {HSRU DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture},
+  title  = {DeltaGrid: Zero-KV Fast-Weight Associative Recurrent Architecture},
   year   = {2026},
-  url    = {https://github.com/hsameerc/hsru-delta}
+  url    = {https://github.com/hsameerc/deltagrid}
 }
 ```

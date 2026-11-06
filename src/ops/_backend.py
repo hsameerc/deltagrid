@@ -39,7 +39,7 @@ def _find_and_load_cuda_extension() -> Optional[Any]:
     # 2. Dynamic file-system discovery relative to this file
     try:
         current_dir = Path(__file__).resolve().parent
-        pkg_root = current_dir.parent.parent  # hsru-delta repository root
+        pkg_root = current_dir.parent.parent  # deltagrid repository root
 
         search_dirs = [
             current_dir.parent,               # src/
