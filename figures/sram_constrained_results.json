@@ -1,0 +1,253 @@
+{
+  "device": "NVIDIA GeForce RTX 3060",
+  "eval_facts": 500,
+  "runs": 100,
+  "records": [
+    {
+      "name": "4 KB Window",
+      "mode": "pkm",
+      "active_slots": 32,
+      "sram_window_kb": 4.0,
+      "dram_traffic_kb_step": 8.0,
+      "latency_us": 12.513279914855957,
+      "throughput_tok_s": 79915.09874343855,
+      "energy_nj": 1272.32,
+      "energy_sram_nj": 20.48,
+      "energy_dram_nj": 1228.8,
+      "energy_comp_nj": 23.04,
+      "mean_cosine": 0.999413676738739,
+      "recall_acc": 100.0,
+      "desc": "5-Axis PKM: 32 active slots (4.0 KB SRAM, 1M total)"
+    },
+    {
+      "name": "4 KB Dense",
+      "mode": "dense",
+      "active_slots": 32,
+      "sram_window_kb": 4.0,
+      "dram_traffic_kb_step": 0.0,
+      "latency_us": 15.258879661560059,
+      "throughput_tok_s": 65535.610882310386,
+      "energy_nj": 30.72,
+      "energy_sram_nj": 20.48,
+      "energy_dram_nj": 0.0,
+      "energy_comp_nj": 10.24,
+      "mean_cosine": 0.05668249836750328,
+      "recall_acc": 1.2,
+      "desc": "Standard Dense: 32 slots permanent in thread registers"
+    },
+    {
+      "name": "8 KB Window",
+      "mode": "pkm",
+      "active_slots": 64,
+      "sram_window_kb": 8.0,
+      "dram_traffic_kb_step": 16.0,
+      "latency_us": 17.3363196849823,
+      "throughput_tok_s": 57682.369624635874,
+      "energy_nj": 2846.72,
+      "energy_sram_nj": 40.96,
+      "energy_dram_nj": 2457.6,
+      "energy_comp_nj": 348.16,
+      "mean_cosine": 0.9993794066905975,
+      "recall_acc": 100.0,
+      "desc": "2-Axis PKM: 64 active slots (8.0 KB SRAM, 1M total)"
+    },
+    {
+      "name": "8 KB Dense",
+      "mode": "dense",
+      "active_slots": 64,
+      "sram_window_kb": 8.0,
+      "dram_traffic_kb_step": 0.0,
+      "latency_us": 19.107840061187744,
+      "throughput_tok_s": 52334.53895352733,
+      "energy_nj": 61.44,
+      "energy_sram_nj": 40.96,
+      "energy_dram_nj": 0.0,
+      "energy_comp_nj": 20.48,
+      "mean_cosine": 0.09787739131227136,
+      "recall_acc": 2.0,
+      "desc": "Standard Dense: 64 slots permanent in thread registers"
+    },
+    {
+      "name": "16 KB Window",
+      "mode": "pkm",
+      "active_slots": 128,
+      "sram_window_kb": 16.0,
+      "dram_traffic_kb_step": 32.0,
+      "latency_us": 17.41536021232605,
+      "throughput_tok_s": 57420.57515940619,
+      "energy_nj": 5058.5599999999995,
+      "energy_sram_nj": 81.92,
+      "energy_dram_nj": 4915.2,
+      "energy_comp_nj": 61.44,
+      "mean_cosine": 0.9994267550706863,
+      "recall_acc": 100.0,
+      "desc": "4-Axis PKM: 81 active slots (10.1 KB SRAM, 1M total)"
+    },
+    {
+      "name": "16 KB Dense",
+      "mode": "dense",
+      "active_slots": 128,
+      "sram_window_kb": 16.0,
+      "dram_traffic_kb_step": 0.0,
+      "latency_us": 22.86400079727173,
+      "throughput_tok_s": 43736.87741120644,
+      "energy_nj": 122.88,
+      "energy_sram_nj": 81.92,
+      "energy_dram_nj": 0.0,
+      "energy_comp_nj": 40.96,
+      "mean_cosine": 0.11739802558720112,
+      "recall_acc": 2.4,
+      "desc": "Standard Dense: 128 slots (Registers + Shared Memory)"
+    },
+    {
+      "name": "32 KB Window",
+      "mode": "pkm",
+      "active_slots": 256,
+      "sram_window_kb": 32.0,
+      "dram_traffic_kb_step": 64.0,
+      "latency_us": 53.0406379699707,
+      "throughput_tok_s": 18853.468553039584,
+      "energy_nj": 10403.84,
+      "energy_sram_nj": 163.84,
+      "energy_dram_nj": 9830.4,
+      "energy_comp_nj": 409.6,
+      "mean_cosine": 0.9991890075206756,
+      "recall_acc": 100.0,
+      "desc": "2-Axis PKM: 256 active slots (32.0 KB SRAM, 1M total)"
+    },
+    {
+      "name": "32 KB Dense",
+      "mode": "dense",
+      "active_slots": 256,
+      "sram_window_kb": 32.0,
+      "dram_traffic_kb_step": 0.0,
+      "latency_us": 40.16863822937012,
+      "throughput_tok_s": 24895.043598187745,
+      "energy_nj": 245.76,
+      "energy_sram_nj": 163.84,
+      "energy_dram_nj": 0.0,
+      "energy_comp_nj": 81.92,
+      "mean_cosine": 0.12518564313277603,
+      "recall_acc": 2.4,
+      "desc": "Standard Dense: 256 slots (GPU Shared Memory resident)"
+    },
+    {
+      "name": "64 KB Dense",
+      "mode": "dense",
+      "active_slots": 512,
+      "sram_window_kb": 64.0,
+      "dram_traffic_kb_step": 0.0,
+      "latency_us": 86.15839958190918,
+      "throughput_tok_s": 11606.529425483568,
+      "energy_nj": 491.52,
+      "energy_sram_nj": 327.68,
+      "energy_dram_nj": 0.0,
+      "energy_comp_nj": 163.84,
+      "mean_cosine": 0.12529089648090302,
+      "recall_acc": 2.6,
+      "desc": "Standard Dense: 512 slots (High Occupancy Shared Memory)"
+    }
+  ],
+  "transformer_baselines": [
+    {
+      "name": "Transformer (T=128)",
+      "context_len": 128,
+      "dram_traffic_kb_step": 32.0,
+      "latency_us": 134.2080020904541,
+      "throughput_tok_s": 7451.120532485206,
+      "energy_nj": 4956.8
+    },
+    {
+      "name": "Transformer (T=512)",
+      "context_len": 512,
+      "dram_traffic_kb_step": 128.0,
+      "latency_us": 132.0486354827881,
+      "throughput_tok_s": 7572.967311202131,
+      "energy_nj": 19825.28
+    },
+    {
+      "name": "Transformer (T=1024)",
+      "context_len": 1024,
+      "dram_traffic_kb_step": 256.0,
+      "latency_us": 136.82047843933105,
+      "throughput_tok_s": 7308.847413827894,
+      "energy_nj": 39649.92
+    },
+    {
+      "name": "Transformer (T=2048)",
+      "context_len": 2048,
+      "dram_traffic_kb_step": 512.0,
+      "latency_us": 135.20895957946777,
+      "throughput_tok_s": 7395.959580712989,
+      "energy_nj": 79299.2
+    },
+    {
+      "name": "Transformer (T=4096)",
+      "context_len": 4096,
+      "dram_traffic_kb_step": 1024.0,
+      "latency_us": 275.45215606689453,
+      "throughput_tok_s": 3630.394527596823,
+      "energy_nj": 158597.76
+    }
+  ],
+  "accuracy_fact_sweep": {
+    "fact_steps": [
+      32,
+      64,
+      128,
+      256,
+      500,
+      1000
+    ],
+    "sweep": {
+      "dense_4kb": [
+        31.25,
+        10.9375,
+        4.6875,
+        1.171875,
+        1.2,
+        0.5
+      ],
+      "dense_8kb": [
+        34.375,
+        15.625,
+        7.03125,
+        3.125,
+        2.0,
+        0.8999999999999999
+      ],
+      "dense_16kb": [
+        40.625,
+        21.875,
+        8.59375,
+        4.296875,
+        2.4,
+        1.0
+      ],
+      "pkm_4kb": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "pkm_8kb": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "pkm_32kb": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ]
+    }
+  }
+}

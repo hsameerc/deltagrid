@@ -1,6 +1,6 @@
-# HSRU DeltaGrid Benchmark Suite
+# DeltaGrid Benchmark Suite
 
-This directory contains the performance profiling, hardware latency measurement, synthetic reasoning benchmarks, and multi-seed baseline comparisons for the **HSRU DeltaGrid** architecture.
+This directory contains the performance profiling, hardware latency measurement, synthetic reasoning benchmarks, and multi-seed baseline comparisons for the **DeltaGrid** architecture.
 
 All benchmarks are fully automated, deterministic with seed control, and runnable on both CUDA GPUs and CPUs.
 
@@ -10,6 +10,7 @@ All benchmarks are fully automated, deterministic with seed control, and runnabl
 
 | Script | Primary Focus | Evaluated Models / Modes | Outputs Generated |
 | :--- | :--- | :--- | :--- |
+| **[`bench_sram_constrained.py`](bench_sram_constrained.py)** | Real-world on-chip SRAM budget constraints (4 KB – 64 KB) | DeltaGrid (Dense & PKM) vs. Transformer KV | Console scorecard, `figures/sram_constrained_results.json`, `figures/sram_constrained_benchmark.png` |
 | **[`bench_cuda_speed.py`](bench_cuda_speed.py)** | Microsecond hardware latency & throughput | Fused CUDA kernel vs. PyTorch recurrent loop | Console latency (ms/us), speedup factor, steps/s |
 | **[`bench_unified_suite.py`](bench_unified_suite.py)** | Master 14-task multi-task benchmark suite | DeltaGrid (Dense, Factorized, Sparse PKM) | 6 task figures + `figures/unified_benchmark_dashboard.png` |
 | **[`bench_associative_memory.py`](bench_associative_memory.py)** | 7 synthetic cognitive reasoning tasks | DeltaGrid LM | Console scorecard (accuracy % and execution time) |
@@ -115,12 +116,29 @@ python benchmarks/bench_baselines.py --quick
 python benchmarks/plot_figures.py
 ```
 
+### 5. Hardware SRAM-Constrained Recurrent Memory Benchmark (`bench_sram_constrained.py`)
+Evaluates DeltaGrid across real-world on-chip GPU SRAM working window budgets:
+- **4 KB, 8 KB, 16 KB, 32 KB, and 64 KB Active Working Windows**
+- **Metrics Captured:**
+  - Peak On-Chip SRAM / Register Usage (KB per head & layer)
+  - DRAM Bus Traffic per Step (KB/step & MB/seq) comparing DeltaGrid's $0\text{ KB}$ (Dense) / $16\text{ KB}$ (PKM) against Transformer KV-cache explosion
+  - Microsecond Step Latency ($\mu\text{s}$) & Token Throughput (tok/s)
+  - First-Principles VLSI Energy per Token (Horowitz ISSCC Model: SRAM vs. DRAM vs. Compute)
+  - Real Multi-Query Associative Recall (MQAR) Retrieval Fidelity across 32 to 1,000 distinct facts.
+
+```bash
+# Run the complete SRAM-constrained benchmark suite:
+python benchmarks/bench_sram_constrained.py --num-facts 500 --runs 200
+```
+
 ---
 
 ## Benchmark Outputs (`figures/`)
 
 | File | Description |
 | :--- | :--- |
+| `figures/sram_constrained_benchmark.png` | 4-panel publication dashboard: Latency vs. SRAM Budget, DRAM Traffic Scaling, VLSI Energy Breakdown, and Real Fact Retention Accuracy. |
+| `figures/sram_constrained_results.json` | Machine-readable metrics payload containing latency, DRAM traffic, energy, and accuracy sweeps. |
 | `figures/rigorous_dashboard.png` | Master 6-panel empirical comparison against Transformers, LSTMs, and GRUs. |
 | `figures/rigorous_results.json` | Structured JSON containing raw per-seed metrics and parameter counts. |
 | `figures/unified_benchmark_dashboard.png` | 6-panel summary dashboard for the classic benchmark suite. |
