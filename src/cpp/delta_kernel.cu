@@ -608,8 +608,11 @@ void launch_delta_grid_forward(
         return;
     }
 
-    // Tiled Shared Memory Kernel: each block holds `tile_block_size = 32` columns of d
-    const int tile_block_size = 32;
+    // Tiled Shared Memory Kernel: dynamically size tile_block_size so per-block shared memory stays <= 48 KB
+    int tile_block_size = 32;
+    while (tile_block_size > 1 && (Slots * tile_block_size * sizeof(float)) > 49152) {
+        tile_block_size /= 2;
+    }
     const dim3 tile_grid(B * H, (Dh + tile_block_size - 1) / tile_block_size);
     const size_t smem_bytes = Slots * tile_block_size * sizeof(float);
 

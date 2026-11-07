@@ -976,9 +976,10 @@ def run_task_pkm_capacity(
     """
     actual_grid = grid_dim if grid_dim is not None else (1024, 1024)
     actual_top_k = top_k if top_k is not None else 8
-    d_model = 64
+    d_model = 128
     num_heads = 2
-    head_dim = d_model // num_heads  # 32
+    head_dim = d_model // num_heads  # 64
+    torch.manual_seed(42)
     layer = DeltaGridLayer(
         d_model=d_model,
         num_heads=num_heads,
@@ -1073,7 +1074,7 @@ def run_task_pkm_capacity(
 
     print(f"[*] Stored Facts:                 {num_facts:,}")
     print(f"[*] Virtual Product Slots:        {total_slots:,} ({cfg_label})")
-    print(f"[*] Active Hardware Compute:      {active_slots} slots ({active_slots * head_dim * 4 // 1024} KB SRAM)")
+    print(f"[*] Active Hardware Compute:      {active_slots} slots ({active_slots * head_dim * 2 // 1024} KB FP16 SRAM)")
     print(f"[*] Mean Cosine Similarity:       {mean_cos:.4f}")
     print(f"[*] High-Fidelity Recall (>0.80): {high_fid_rate:.1f}%")
     print(f"[*] Elapsed Time:                 {elapsed:.2f}s")

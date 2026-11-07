@@ -10,7 +10,7 @@
 
 **DeltaGrid** is a linear-complexity, zero-KV-cache recurrent neural foundation architecture designed for ultra-long context language modeling, sub-millisecond continuous robotics control, and physical telemetry forecasting.
 
-DeltaGrid replaces the quadratic $O(T^2)$ computational complexity and memory-exploding $O(T)$ Key-Value cache of standard Transformers with an **error-erasing closed-loop associative memory rule** operating in **strictly constant $O(1)$ RAM**, featuring **100% on-chip GPU register/SRAM residency** for dense states ($\le 256$ slots) and a **strict 8 KB active SRAM compute window** for 1,048,576-slot Sparse Delta-PKM.
+DeltaGrid replaces the quadratic $O(T^2)$ computational complexity and memory-exploding $O(T)$ Key-Value cache of standard Transformers with an **error-erasing closed-loop associative memory rule** operating in **strictly constant $O(1)$ RAM**, featuring **100% on-chip GPU register/SRAM residency** for dense states ($\le 512$ slots) and a **strict 4 KB – 32 KB active SRAM compute window** (8 KB default) for 1,048,576-slot Sparse Delta-PKM.
 
 ---
 
@@ -59,11 +59,11 @@ $$
 
 ### 3. Hardware-Mapped Memory Hierarchy (Register & SRAM Residency)
 DeltaGrid is architected from the silicon up to bypass the memory bandwidth bottleneck (the "DRAM Memory Wall") by strictly bounding recurrent compute within on-chip GPU hardware registers and SRAM:
-- **Standard Dense Mode ($\text{Slots} \le 256$): 100% Permanent On-Chip State Residency**
-  - Full head memory states $\mathbf{S} \in \mathbb{R}^{\text{Slots} \times D_h}$ require only **4 KB – 32 KB per head** (FP16).
-  - Resident entirely inside GPU hardware thread registers (`float s_reg[SLOTS]`) and on-chip Shared Memory / L1 SRAM (e.g., NVIDIA H100 with 228 KB SRAM per SM).
-  - **Zero DRAM roundtrips:** State remains resident on-chip across all $T$ timesteps, executing barrier-free at peak hardware clock speed.
-- **Sparse Delta-PKM Mode ($1,048,576$ Virtual Slots): Strict 8 KB Active SRAM Window**
+- **Standard Dense Mode ($\text{Slots} \le 512$): 100% Permanent On-Chip State Residency**
+  - Full head memory states $\mathbf{S} \in \mathbb{R}^{\text{Slots} \times D_h}$ require only **4 KB – 64 KB per head** (FP16).
+  - Resident entirely inside GPU hardware thread registers (`float s_reg[SLOTS]` for $\text{Slots} \le 128$) and on-chip Shared Memory / L1 SRAM ($\text{Slots} \le 512$).
+  - **Zero DRAM roundtrips:** State remains resident on-chip across all $T$ timesteps, executing barrier-free at up to **1.59M tok/s (`0.63 µs/tok`)** on-chip sequence recurrence.
+- **Sparse Delta-PKM Mode ($1,048,576$ Virtual Slots): Strict 4 KB – 32 KB Active SRAM Window (8 KB Default)**
   - While the massive 1M-slot global knowledge store ($128\text{ MB}$ per head) is hosted in VRAM DRAM, **token recurrence never executes a dense 128 MB matrix operation**.
   - At each token step $t$, the coordinate router indexes strictly the active $K_1 \times K_2 = 64$ slots (**8 KB FP16**) into on-chip registers/SRAM.
   - Closed-loop Householder read, error residual erasure, and delta update execute at register speed before coalesced scattering back to VRAM.
@@ -152,7 +152,7 @@ DeltaGrid has been rigorously evaluated across all 14 standard recurrent memory 
 | **11** | **Associative Recall (SQAR 8-Pairs)** | Disambiguation Acc | **99.6%** | $\ge 98.0\%$ | **PASSED (100%)** |
 | **12** | **Multi-Variable State Machine** | 5 Variable Tracking | **100.0%** | $\ge 98.0\%$ | **PASSED (100%)** |
 | **13** | **Multi-Hop Transitive Reasoning** | Resolution Acc | **100.0%** | $\ge 98.0\%$ | **PASSED (100%)** |
-| **14** | **Sparse Delta-PKM (1,000 Facts in 1M Slots)** | Recall ($\cos > 0.80$) | **100.0%** (Cosine: **0.9962**) | $\ge 98.0\%$ | **PASSED (100%)** |
+| **14** | **Sparse Delta-PKM (1,000 Facts in 1M Slots)** | Recall ($\cos > 0.80$) | **100.0%** (Cosine: **0.9989**) | $\ge 98.0\%$ | **PASSED (100%)** |
 
 ### High-Density Associative KV Retrieval Capacity (Delta-PKM)
 *Measured live on sequential random KV pair retention (Cosine similarity of retrieved values; $1.0 = \text{perfect verbatim recall}$):*
@@ -195,29 +195,33 @@ DeltaGrid's Product-Key Memory maps high-dimensional associative keys into an ex
 
 | Memory Architecture Mode | Coordinate Axes Geometry | Total Virtual Slots | Active Slots per Step | Active SRAM Window | Key Router Params (per Head) | Primary Application Domain |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Standard Dense** | Direct 1D | 64 | 64 | 8 KB | 4,096 | Embedded edge devices, robotics, real-time control |
-| **Balanced PKM** | `(64, 64)` | **4,096** | 64 ($K=8$) | **8 KB** | 8,192 | Mid-sized agents, code synthesis, mathematical reasoning |
-| **Massive PKM** | `(1024, 1024)` | **1,048,576** | 64 ($K=8$) | **8 KB** | 131,072 | Large-scale LLMs, long-document reasoning, multi-hop QA |
-| **4-Axis PKM** | `(32, 32, 32, 32)` | **1,048,576** | 81 ($K=3$) | 10 KB | 8,192 | Hierarchical multi-predicate knowledge graphs |
-| **5-Axis PKM** | `(16, 16, 16, 16, 16)` | **1,048,576** | 32 ($K=2$) | **4 KB** | **5,120** | Ultra-low parameter mobile & embedded edge devices |
+| **Standard Dense** | Direct 1D | 64 | 64 | 8.0 KB | 4,096 | Embedded edge devices, robotics, real-time control |
+| **5-Axis PKM (4 KB)** | `(16, 16, 16, 16, 16)` | **1,048,576** | 32 ($K=2$) | **4.0 KB** | **5,120** | Ultra-low parameter mobile & embedded edge devices |
+| **Balanced PKM (8 KB)** | `(64, 64)` | **4,096** | 64 ($K=8$) | **8.0 KB** | 8,192 | Mid-sized agents, code synthesis, mathematical reasoning |
+| **Massive PKM (8 KB)** | `(1024, 1024)` | **1,048,576** | 64 ($K=8$) | **8.0 KB** | 131,072 | Large-scale LLMs, long-document reasoning, multi-hop QA |
+| **4-Axis PKM (10 KB)** | `(32, 32, 32, 32)` | **1,048,576** | 81 ($K=3$) | **10.1 KB** | 8,192 | Hierarchical multi-predicate knowledge graphs |
+| **7-Axis PKM (16 KB)** | `(8, 8, 8, 8, 8, 8, 4)` | **1,048,576** | 128 ($K=2$) | **16.0 KB** | 3,328 | High-precision multi-axis relational memory |
+| **Wide PKM (32 KB)** | `(1024, 1024)` | **1,048,576** | 256 ($K=16$) | **32.0 KB** | 131,072 | Ultra-dense associative world models |
 
 > [!NOTE]
-> All configurations are directly parameterized using `grid_dim` and `top_k`. Active compute recurrence strictly touches **64 slots (8 KB)** across all PKM geometries!
+> All configurations are directly parameterized using `grid_dim` and `top_k`. Active compute recurrence strictly touches **32 – 256 slots (4.0 KB – 32.0 KB)** across all PKM geometries (**8.0 KB default** for `top_k=8` 2-axis grids)!
 
 ### 3. Slot Capacity vs. Hardware Memory Hierarchy
-DeltaGrid's state layout maps directly into modern GPU memory tiers:
+DeltaGrid's state layout maps directly into modern GPU memory tiers (measured on NVIDIA GeForce RTX 3060):
 
-| Slots | State per Head | Physical Location | Speed Profile |
-| :---: | :---: | :--- | :--- |
-| **64** | **8 KB** | **Thread Hardware Registers** | Maximum GPU Clock (15,000+ tok/s) |
-| **128** | **16 KB** | Thread Registers + Shared Memory | Ultra-Fast (~12,000 tok/s) |
-| **256** | **32 KB** | GPU Shared Memory (SRAM Limit: 48–228 KB) | High Throughput (~8,000 tok/s) |
-| **1,048,576** | **128 MB** | VRAM DRAM (Requires Top-$K$ Sparse Routing) | Large-Scale World Knowledge Base |
+| Slots | State per Head (FP16) | Physical GPU Memory Tier | On-Chip Sequence Recurrence ($T=512$) | Single-Step Decode Latency |
+| :---: | :---: | :--- | :---: | :---: |
+| **32** | **4.0 KB** | **100% Thread Hardware Registers (`s_reg[32]`)** | **0.63 µs/tok (1.59M tok/s)** | **15.4 µs (~65,000 tok/s)** |
+| **64** | **8.0 KB** | **100% Thread Hardware Registers (`s_reg[64]`)** | **0.77 µs/tok (1.30M tok/s)** | **17.4 µs (~57,600 tok/s)** |
+| **128** | **16.0 KB** | **100% Thread Hardware Registers (`s_reg[128]`)** | **1.88 µs/tok (531.9K tok/s)** | **17.1 µs (~58,400 tok/s)** |
+| **256** | **32.0 KB** | **100% On-Chip Shared Memory (SMEM Tile)** | **18.00 µs/tok (55.6K tok/s)** | **34.2 µs (~29,200 tok/s)** |
+| **512** | **64.0 KB** | **100% On-Chip Shared Memory (SMEM Tile)** | **35.40 µs/tok (28.2K tok/s)** | **75.1 µs (~13,300 tok/s)** |
+| **1,048,576** | **128.0 MB** | **VRAM Backing Store + 4–32 KB Register Window** | **7.03 – 13.52 µs/tok** | **12.3 – 14.7 µs (68K–81K tok/s)** |
 
 > [!TIP]
 > **Physical Memory Mapping Architecture:**
-> - **Dense Modes ($\le 256$ slots):** The **entire recurrent state matrix** stays permanently resident in GPU hardware registers or Shared Memory SRAM throughout sequence generation — achieving true **zero DRAM roundtrips**.
-> - **Massive Delta-PKM ($1,048,576$ slots):** The **backing storage table** ($128\text{ MB}$) is allocated in VRAM DRAM, but the **compute recurrence is strictly 8 KB register/SRAM resident**: only the dynamically routed $64$ active slots are gathered into on-chip registers for the Householder delta update, eliminating dense memory-bandwidth bottlenecks.
+> - **Dense Modes ($\le 512$ slots):** The **entire recurrent state matrix** stays permanently resident in GPU hardware registers (`Slots <= 128`) or Shared Memory SRAM (`128 < Slots <= 512`) throughout sequence generation — achieving true **zero DRAM roundtrips**.
+> - **Massive Delta-PKM ($1,048,576$ slots):** The **backing storage table** ($128\text{ MB}$) is allocated in VRAM DRAM, but the **compute recurrence is strictly 4 KB – 32 KB register/SRAM resident** (8 KB default): only the dynamically routed active slots are gathered into on-chip registers for the Householder delta update, eliminating dense memory-bandwidth bottlenecks.
 
 ---
 
@@ -438,16 +442,33 @@ python benchmarks/bench_sram_constrained.py --num-facts 500 --runs 200
 
 ### Hardware SRAM Benchmark Summary (Measured on NVIDIA RTX 3060)
 
-| Architecture Mode | Active SRAM Window | DRAM Traffic / Step | Step Latency | Throughput | VLSI Energy / Token | 500 Facts Recall |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DeltaGrid PKM (4 KB)** | **4.0 KB** | 8.0 KB | **12.5 µs** | **79,915 tok/s** | **1,272 nJ** | **100.0%** |
-| **DeltaGrid Dense (4 KB)** | **4.0 KB** | **0.0 KB (Zero)** | **15.3 µs** | **65,536 tok/s** | **30.7 nJ** | Saturated ($N \gg 32$) |
-| **DeltaGrid PKM (8 KB)** | **8.0 KB** | 16.0 KB | **17.3 µs** | **57,682 tok/s** | **2,847 nJ** | **100.0%** |
-| **DeltaGrid Dense (8 KB)** | **8.0 KB** | **0.0 KB (Zero)** | **19.1 µs** | **52,335 tok/s** | **61.4 nJ** | Saturated ($N \gg 64$) |
-| **DeltaGrid Dense (16 KB)** | **16.0 KB** | **0.0 KB (Zero)** | **22.9 µs** | **43,737 tok/s** | **122.9 nJ** | Saturated ($N \gg 128$) |
-| **DeltaGrid Dense (32 KB)** | **32.0 KB** | **0.0 KB (Zero)** | **40.2 µs** | **24,895 tok/s** | **245.8 nJ** | Saturated ($N \gg 256$) |
-| **Transformer ($T=1024$)** | $O(T)$ Cache | 256.0 KB | 136.8 µs | 7,308 tok/s | 39,650 nJ | 100.0% |
-| **Transformer ($T=4096$)** | $O(T)$ Cache | 1,024.0 KB | 275.5 µs | 3,630 tok/s | 158,598 nJ | 100.0% |
+#### 1. Active Compute, Hardware Residency & Energy Profile ($N = 500$ Facts)
+| Architecture Mode | Active SRAM Window | DRAM Traffic / Step | Step Latency | On-Chip Seq ($T=512$) | VLSI Energy / Token | 500-Fact Recall | Physical Residency Tier |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **DeltaGrid PKM (4 KB)** | **4.0 KB** | 8.0 KB | **12.30 µs** (81.3K tok/s) | 7.03 µs/tok | **1,272.3 nJ** | **100.0%** ($\cos=1.00$) | Register Window (32 slots) $\to$ VRAM |
+| **DeltaGrid Dense (4 KB)** | **4.0 KB** | **0.0 KB (Zero)** | **15.38 µs** (65.0K tok/s) | **0.63 µs/tok (1.59M tok/s)** | **30.7 nJ** | 1.8% ($N \gg 32$) | 100% Thread Registers (`s_reg[32]`) |
+| **DeltaGrid PKM (8 KB)** | **8.0 KB** | 16.0 KB | **14.65 µs** (68.3K tok/s) | 13.52 µs/tok | **2,846.7 nJ** | **100.0%** ($\cos=1.00$) | Register Window (64 slots) $\to$ VRAM |
+| **DeltaGrid Dense (8 KB)** | **8.0 KB** | **0.0 KB (Zero)** | **17.36 µs** (57.6K tok/s) | **0.77 µs/tok (1.30M tok/s)** | **61.4 nJ** | 3.4% ($N \gg 64$) | 100% Thread Registers (`s_reg[64]`) |
+| **DeltaGrid PKM (10 KB)** | **10.1 KB** | 20.2 KB | **18.06 µs** (55.4K tok/s) | 17.38 µs/tok | **3,208.6 nJ** | **100.0%** ($\cos=1.00$) | Register Window (81 slots) $\to$ VRAM |
+| **DeltaGrid PKM (16 KB)** | **16.0 KB** | 32.0 KB | **21.96 µs** (45.5K tok/s) | 28.18 µs/tok | **5,046.4 nJ** | **100.0%** ($\cos=1.00$) | Register Window (128 slots) $\to$ VRAM |
+| **DeltaGrid Dense (16 KB)** | **16.0 KB** | **0.0 KB (Zero)** | **17.12 µs** (58.4K tok/s) | **1.88 µs/tok (531.9K tok/s)** | **122.9 nJ** | 6.6% ($N \gg 128$) | 100% Thread Registers (`s_reg[128]`) |
+| **DeltaGrid PKM (32 KB)** | **32.0 KB** | 64.0 KB | **45.32 µs** (22.1K tok/s) | 66.79 µs/tok | **10,403.8 nJ** | **100.0%** ($\cos=1.00$) | Register Window (256 slots) $\to$ VRAM |
+| **DeltaGrid Dense (32 KB)** | **32.0 KB** | **0.0 KB (Zero)** | **34.22 µs** (29.2K tok/s) | 18.00 µs/tok (55.6K tok/s) | **245.8 nJ** | 12.2% ($N \gg 256$) | 100% On-Chip Shared Memory (SMEM Tile) |
+| **DeltaGrid Dense (64 KB)** | **64.0 KB** | **0.0 KB (Zero)** | **75.11 µs** (13.3K tok/s) | 35.40 µs/tok (28.2K tok/s) | **491.5 nJ** | **100.0%** ($\cos=1.00$) | 100% On-Chip Shared Memory (SMEM Tile) |
+| **Transformer ($T=1024$)** | $O(T)$ Cache | 256.0 KB | 125.35 µs (8.0K tok/s) | — | 39,649.9 nJ | 100.0% | Unconstrained VRAM KV-Cache (512 KB) |
+| **Transformer ($T=4096$)** | $O(T)$ Cache | 1,024.0 KB | 127.38 µs (7.9K tok/s) | — | 158,597.8 nJ | 100.0% | Unconstrained VRAM KV-Cache (2,048 KB) |
+
+#### 2. Memory Capacity Step-Transition Sweep ($N = 32 \dots 1,000$ Facts)
+*Demonstrates exact 100% Householder recall for Dense windows up to their rank limit ($N \le \text{Slots}$), while Sparse Delta-PKM decouples active SRAM compute ($4\text{ KB} - 32\text{ KB}$) from total memory capacity ($1,048,576$ slots) to sustain 100.0% recall across all $N$:*
+
+| Stored Facts ($N$) | Dense 4 KB (32 Slots) | Dense 8 KB (64 Slots) | Dense 16 KB (128 Slots) | Dense 32 KB (256 Slots) | Dense 64 KB (512 Slots) | PKM 4 KB / 8 KB / 16 KB / 32 KB ($10^6$ Slots) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **32 Facts** | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) |
+| **64 Facts** | 14.1% ($\cos=0.53$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) |
+| **128 Facts** | 6.2% ($\cos=0.28$) | 12.5% ($\cos=0.52$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) |
+| **256 Facts** | 3.5% ($\cos=0.14$) | 6.6% ($\cos=0.25$) | 11.3% ($\cos=0.49$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) |
+| **500 Facts** | 1.8% ($\cos=0.07$) | 3.4% ($\cos=0.13$) | 6.6% ($\cos=0.25$) | 12.2% ($\cos=0.51$) | **100.0%** ($\cos=1.00$) | **100.0%** ($\cos=1.00$) |
+| **1,000 Facts** | 0.7% ($\cos=0.03$) | 1.3% ($\cos=0.06$) | 3.3% ($\cos=0.13$) | 6.0% ($\cos=0.26$) | 12.6% ($\cos=0.51$) | **100.0%** ($\cos=1.00$) |
 
 <p align="center">
   <img src="figures/rigorous_dashboard.png" alt="DeltaGrid Rigorous Benchmarks Dashboard" width="100%">

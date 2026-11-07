@@ -117,14 +117,12 @@ python benchmarks/plot_figures.py
 ```
 
 ### 5. Hardware SRAM-Constrained Recurrent Memory Benchmark (`bench_sram_constrained.py`)
-Evaluates DeltaGrid across real-world on-chip GPU SRAM working window budgets:
-- **4 KB, 8 KB, 16 KB, 32 KB, and 64 KB Active Working Windows**
-- **Metrics Captured:**
-  - Peak On-Chip SRAM / Register Usage (KB per head & layer)
-  - DRAM Bus Traffic per Step (KB/step & MB/seq) comparing DeltaGrid's $0\text{ KB}$ (Dense) / $16\text{ KB}$ (PKM) against Transformer KV-cache explosion
-  - Microsecond Step Latency ($\mu\text{s}$) & Token Throughput (tok/s)
-  - First-Principles VLSI Energy per Token (Horowitz ISSCC Model: SRAM vs. DRAM vs. Compute)
-  - Real Multi-Query Associative Recall (MQAR) Retrieval Fidelity across 32 to 1,000 distinct facts.
+Evaluates DeltaGrid across real-world on-chip GPU SRAM working window budgets across all three hardware dimensions (**Memory Capacity**, **Active Compute**, and **Hardware Residency**):
+- **4 KB, 8 KB, 10.1 KB, 16 KB, 32 KB, and 64 KB Active Working Windows**
+- **Metrics Captured (Both Empirically Benchmarked & Analytically Verified):**
+  - **Memory Capacity:** Multi-Query Associative Recall (MQAR) step-transition sweep across $N = 32, 64, 128, 256, 500, 1000$ distinct facts (verifying 100% exact orthonormal Householder capacity for $N \le \text{Slots}$ in Dense mode and 100% capacity up to $N=1,000$ in 1M-slot Sparse PKM mode).
+  - **Active Compute:** Both single-step decode latency ($\mu\text{s/step}$) and multi-step on-chip sequence recurrence (`hsru_delta_cuda.forward` over $T=512$ steps in $\mu\text{s/tok}$, up to **1.59M tok/s**).
+  - **Hardware Residency:** Exact GPU physical tier classification (`Thread Hardware Registers` for $\text{Slots} \le 128$, `On-Chip Shared Memory SMEM Tile` for $128 < \text{Slots} \le 512$, and `Coalesced Register Window -> VRAM Table` for Sparse PKM), empirical PyTorch CUDA allocator step deltas (`0 B`), DRAM bus traffic per step, and first-principles Horowitz 7nm VLSI energy per token.
 
 ```bash
 # Run the complete SRAM-constrained benchmark suite:
