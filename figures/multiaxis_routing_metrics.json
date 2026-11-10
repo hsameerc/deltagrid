@@ -1,0 +1,318 @@
+{
+  "2-Axis Baseline (1024 x 1024)": [
+    {
+      "facts": 1000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9987813983559608,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.04385542869567871,
+      "unique_slots": 58320,
+      "slot_occupancy_pct": 5.56182861328125
+    },
+    {
+      "facts": 3000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9965346244573593,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.15926218032836914,
+      "unique_slots": 151099,
+      "slot_occupancy_pct": 14.409923553466797
+    },
+    {
+      "facts": 5000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9941423486471176,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.2486417293548584,
+      "unique_slots": 222719,
+      "slot_occupancy_pct": 21.24013900756836
+    },
+    {
+      "facts": 10000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9884604108929634,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.5141644477844238,
+      "unique_slots": 349701,
+      "slot_occupancy_pct": 33.3500862121582
+    },
+    {
+      "facts": 20000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9775895747542381,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.9254062175750732,
+      "unique_slots": 501032,
+      "slot_occupancy_pct": 47.782135009765625
+    },
+    {
+      "facts": 50000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.9432927420139313,
+      "recall_acc": 99.6,
+      "write_time_sec": 2.1791906356811523,
+      "unique_slots": 699461,
+      "slot_occupancy_pct": 66.7057991027832
+    },
+    {
+      "facts": 100000,
+      "total_slots": 1048576,
+      "active_slots": 64,
+      "sram_kb": 8.0,
+      "mean_cosine": 0.8917887563109398,
+      "recall_acc": 89.3,
+      "write_time_sec": 4.332293510437012,
+      "unique_slots": 822541,
+      "slot_occupancy_pct": 78.44362258911133
+    }
+  ],
+  "4-Axis Match (32 x 32 x 32 x 32)": [
+    {
+      "facts": 1000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9990951359272003,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.044660329818725586,
+      "unique_slots": 15659,
+      "slot_occupancy_pct": 1.4933586120605469
+    },
+    {
+      "facts": 3000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9973525382876396,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.15327978134155273,
+      "unique_slots": 45241,
+      "slot_occupancy_pct": 4.314517974853516
+    },
+    {
+      "facts": 5000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9958845810890198,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.23735857009887695,
+      "unique_slots": 72752,
+      "slot_occupancy_pct": 6.93817138671875
+    },
+    {
+      "facts": 10000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.990614839375019,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.4598398208618164,
+      "unique_slots": 133592,
+      "slot_occupancy_pct": 12.740325927734375
+    },
+    {
+      "facts": 20000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9817538629770279,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.9207227230072021,
+      "unique_slots": 231408,
+      "slot_occupancy_pct": 22.06878662109375
+    },
+    {
+      "facts": 50000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9493060783147812,
+      "recall_acc": 98.1,
+      "write_time_sec": 2.3886375427246094,
+      "unique_slots": 419746,
+      "slot_occupancy_pct": 40.03009796142578
+    },
+    {
+      "facts": 100000,
+      "total_slots": 1048576,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.90140978500247,
+      "recall_acc": 87.9,
+      "write_time_sec": 4.86496639251709,
+      "unique_slots": 587762,
+      "slot_occupancy_pct": 56.05335235595703
+    }
+  ],
+  "3-Axis Double (128 x 128 x 128)": [
+    {
+      "facts": 1000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9993892791271209,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.04982447624206543,
+      "unique_slots": 26400,
+      "slot_occupancy_pct": 1.25885009765625
+    },
+    {
+      "facts": 3000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9981893045306206,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.14929580688476562,
+      "unique_slots": 76015,
+      "slot_occupancy_pct": 3.6246776580810547
+    },
+    {
+      "facts": 5000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9968672445416451,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.23548316955566406,
+      "unique_slots": 121676,
+      "slot_occupancy_pct": 5.801963806152344
+    },
+    {
+      "facts": 10000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9936115573644638,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.4941444396972656,
+      "unique_slots": 222759,
+      "slot_occupancy_pct": 10.621976852416992
+    },
+    {
+      "facts": 20000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9874351671934127,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.9556140899658203,
+      "unique_slots": 385356,
+      "slot_occupancy_pct": 18.375205993652344
+    },
+    {
+      "facts": 50000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9688446115255356,
+      "recall_acc": 100.0,
+      "write_time_sec": 2.367914915084839,
+      "unique_slots": 703407,
+      "slot_occupancy_pct": 33.541059494018555
+    },
+    {
+      "facts": 100000,
+      "total_slots": 2097152,
+      "active_slots": 27,
+      "sram_kb": 3.375,
+      "mean_cosine": 0.9400839805006981,
+      "recall_acc": 98.3,
+      "write_time_sec": 4.411701679229736,
+      "unique_slots": 997324,
+      "slot_occupancy_pct": 47.556114196777344
+    }
+  ],
+  "4-Axis Ultra (40 x 40 x 40 x 40)": [
+    {
+      "facts": 1000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9994600246548653,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.05104494094848633,
+      "unique_slots": 15839,
+      "slot_occupancy_pct": 0.6187109375000001
+    },
+    {
+      "facts": 3000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9983139685392379,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.1427290439605713,
+      "unique_slots": 46583,
+      "slot_occupancy_pct": 1.8196484375
+    },
+    {
+      "facts": 5000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9975186906456948,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.24515199661254883,
+      "unique_slots": 76189,
+      "slot_occupancy_pct": 2.9761328125
+    },
+    {
+      "facts": 10000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9953651794195175,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.47379159927368164,
+      "unique_slots": 145448,
+      "slot_occupancy_pct": 5.6815625
+    },
+    {
+      "facts": 20000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9912607340812684,
+      "recall_acc": 100.0,
+      "write_time_sec": 0.9093194007873535,
+      "unique_slots": 268191,
+      "slot_occupancy_pct": 10.4762109375
+    },
+    {
+      "facts": 50000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.975827809214592,
+      "recall_acc": 99.8,
+      "write_time_sec": 2.327755928039551,
+      "unique_slots": 550760,
+      "slot_occupancy_pct": 21.5140625
+    },
+    {
+      "facts": 100000,
+      "total_slots": 2560000,
+      "active_slots": 16,
+      "sram_kb": 2.0,
+      "mean_cosine": 0.9536086692810058,
+      "recall_acc": 98.7,
+      "write_time_sec": 4.720059394836426,
+      "unique_slots": 866288,
+      "slot_occupancy_pct": 33.839375
+    }
+  ]
+}

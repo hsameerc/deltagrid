@@ -1,0 +1,171 @@
+{
+  "points_128": [
+    100,
+    500,
+    1000,
+    2000,
+    3000,
+    5000,
+    7500,
+    10000,
+    15000,
+    20000
+  ],
+  "points_1024": [
+    100,
+    500,
+    1000,
+    2000,
+    3000,
+    5000,
+    7500,
+    10000,
+    15000,
+    20000,
+    50000,
+    100000,
+    200000
+  ],
+  "grid_128x128": [
+    {
+      "facts": 100,
+      "mean_cosine": 0.9967,
+      "recall_acc": 100.0,
+      "time_sec": 0.42
+    },
+    {
+      "facts": 500,
+      "mean_cosine": 0.984,
+      "recall_acc": 100.0,
+      "time_sec": 0.31
+    },
+    {
+      "facts": 1000,
+      "mean_cosine": 0.9674,
+      "recall_acc": 100.0,
+      "time_sec": 0.67
+    },
+    {
+      "facts": 2000,
+      "mean_cosine": 0.9334,
+      "recall_acc": 98.2,
+      "time_sec": 1.26
+    },
+    {
+      "facts": 3000,
+      "mean_cosine": 0.8983,
+      "recall_acc": 90.5,
+      "time_sec": 1.83
+    },
+    {
+      "facts": 5000,
+      "mean_cosine": 0.8309,
+      "recall_acc": 63.7,
+      "time_sec": 3.08
+    },
+    {
+      "facts": 7500,
+      "mean_cosine": 0.7564,
+      "recall_acc": 41.0,
+      "time_sec": 4.79
+    },
+    {
+      "facts": 10000,
+      "mean_cosine": 0.6899,
+      "recall_acc": 28.9,
+      "time_sec": 6.33
+    },
+    {
+      "facts": 15000,
+      "mean_cosine": 0.5804,
+      "recall_acc": 17.9,
+      "time_sec": 9.72
+    },
+    {
+      "facts": 20000,
+      "mean_cosine": 0.4999,
+      "recall_acc": 12.7,
+      "time_sec": 12.77
+    }
+  ],
+  "grid_1024x1024": [
+    {
+      "facts": 100,
+      "mean_cosine": 0.9999,
+      "recall_acc": 100.0,
+      "time_sec": 0.09
+    },
+    {
+      "facts": 500,
+      "mean_cosine": 0.9994,
+      "recall_acc": 100.0,
+      "time_sec": 0.37
+    },
+    {
+      "facts": 1000,
+      "mean_cosine": 0.9988,
+      "recall_acc": 100.0,
+      "time_sec": 0.7
+    },
+    {
+      "facts": 2000,
+      "mean_cosine": 0.9976,
+      "recall_acc": 100.0,
+      "time_sec": 1.4
+    },
+    {
+      "facts": 3000,
+      "mean_cosine": 0.9964,
+      "recall_acc": 100.0,
+      "time_sec": 1.96
+    },
+    {
+      "facts": 5000,
+      "mean_cosine": 0.9941,
+      "recall_acc": 100.0,
+      "time_sec": 3.27
+    },
+    {
+      "facts": 7500,
+      "mean_cosine": 0.9912,
+      "recall_acc": 100.0,
+      "time_sec": 4.83
+    },
+    {
+      "facts": 10000,
+      "mean_cosine": 0.9884,
+      "recall_acc": 100.0,
+      "time_sec": 6.39
+    },
+    {
+      "facts": 15000,
+      "mean_cosine": 0.9828,
+      "recall_acc": 100.0,
+      "time_sec": 9.73
+    },
+    {
+      "facts": 20000,
+      "mean_cosine": 0.977,
+      "recall_acc": 100.0,
+      "time_sec": 12.26
+    },
+    {
+      "facts": 50000,
+      "mean_cosine": 0.9444,
+      "recall_acc": 99.8,
+      "time_sec": 18.82
+    },
+    {
+      "facts": 100000,
+      "mean_cosine": 0.893,
+      "recall_acc": 90.5,
+      "time_sec": 29.89
+    },
+    {
+      "facts": 200000,
+      "mean_cosine": 0.803,
+      "recall_acc": 53.5,
+      "time_sec": 57.82
+    }
+  ]
+}

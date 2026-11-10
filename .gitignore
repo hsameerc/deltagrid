@@ -1,0 +1,98 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+venv/
+.venv/
+.venvtest/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MacOS
+.DS_Store
+
+# HSRU / DeltaGrid Edge Binaries
+hsru/cpp/engine/build/
+hsru/cpp/engine/build_ggml/
+src/cpp/engine/build/
+src/cpp/engine/build_cmake/
+hsru/cpp/engine/*.wav
+*.wav
+*.log
+*.so
+*.pt
+*.pyd
+hsru/assets/
+
+# JetBrains Junie
+.junie/
+
+# Datasets & Test outputs
+datasets/
+tests/models/
+tests/temp_corpus.txt
+
+# Databases and telemetry
+*.db
+*.db-shm
+*.db-wal
+wandb/
+checkpoints/
