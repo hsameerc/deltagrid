@@ -844,7 +844,9 @@ def run_all_tests():
     ).to(DEVICE)
     state_14 = torch.zeros(1, router_14.total_virtual_slots, d_model, device=DEVICE)
 
-    t0 = time.time()
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+    t0 = time.perf_counter()
     with torch.no_grad():
         for i in range(num_facts_14):
             w_k, idx, _ = router_14(keys_14[i:i + 1])
@@ -855,11 +857,14 @@ def run_all_tests():
             s_act_new = s_act + torch.matmul(w_k.unsqueeze(-1), err.unsqueeze(1))
             state_14.scatter_(1, exp_idx, s_act_new)
 
-        elapsed_ms_14 = (time.time() - t0) * 1000.0
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+    elapsed_ms_14 = (time.perf_counter() - t0) * 1000.0
 
-        eval_count_14 = min(num_facts_14, 1000)
-        eval_indices_14 = torch.linspace(0, num_facts_14 - 1, eval_count_14).long()
-        cos_sims_14 = []
+    eval_count_14 = min(num_facts_14, 1000)
+    eval_indices_14 = torch.linspace(0, num_facts_14 - 1, eval_count_14).long()
+    cos_sims_14 = []
+    with torch.no_grad():
         for idx_ev in eval_indices_14:
             i = idx_ev.item()
             w_q, idx, _ = router_14(keys_14[i:i + 1])
@@ -873,17 +878,79 @@ def run_all_tests():
     recall_rate_14 = sum(1 for c in cos_sims_14 if c > 0.80) / len(cos_sims_14) * 100.0
     print(f"  - Stored Facts:            {num_facts_14:,} distinct KV pairs")
     print(f"  - 4-Axis Virtual Space:    {router_14.total_virtual_slots:,} slots (48^4)")
-    print(f"  - Active Compute Window:   {router_14.active_slots} slots (strictly 2.0 KB SRAM)")
+    print(f"  - Active Compute Window:   {router_14.active_slots} slots (4.0 KB SRAM active window in float32; 1.27 GiB allocated state buffer)")
     print(f"  - Subspace Slicing:        4 disjoint orthogonal slices (Dh/4 = {d_model // 4})")
     print(f"  - Total Write Time:        {elapsed_ms_14:.2f} ms ({elapsed_ms_14 / num_facts_14:.3f} ms/fact)")
-    print(f"  - Mean Recall Cosine:      {mean_cos_14:.4f}")
-    print(f"  - High-Fidelity Recall:    {recall_rate_14:.1f}% (cos > 0.80)")
+    print(f"  - Sampled Mean Recall:     {mean_cos_14:.4f} (evaluated on {eval_count_14:,} sample)")
+    print(f"  - Sampled High-Fidelity:   {recall_rate_14:.1f}% (cos > 0.80 on {eval_count_14:,} sample)")
     assert recall_rate_14 >= 99.5, f"Expected >= 99.5% recall, got {recall_rate_14}%"
     assert mean_cos_14 >= 0.985, f"Expected >= 0.985 cosine, got {mean_cos_14}"
-    print(f"  -> PASSED: {num_facts_14:,} facts stored with {recall_rate_14:.1f}% recall in subspace-sliced 4-axis spiking memory.")
+    print(f"  -> PASSED: {num_facts_14:,} facts stored with {recall_rate_14:.1f}% sampled recall in subspace-sliced 4-axis spiking memory.")
+
+    # -------------------------------------------------------------------------
+    # TEST 15: Batched Hebbian Superposition Baseline vs. Sequential Delta Rule
+    # -------------------------------------------------------------------------
+    print("\n[TEST 15] Batched Hebbian Superposition Baseline vs. Sequential Delta Rule")
+    print("  (Methodological Note: Compares sequential error-erasure against")
+    print("   batched index_add_ superposition under explicit CUDA synchronization.)")
+    num_facts_15 = 20000
+    state_15_hebb = torch.zeros(1, router_14.total_virtual_slots, d_model, device=DEVICE)
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+    t0 = time.perf_counter()
+
+    with torch.no_grad():
+        w_k_all, idx_all, _ = router_14(keys_14)
+        flat_idx = idx_all.reshape(-1)
+        flat_w = w_k_all.reshape(-1, 1)
+        expanded_v = vals_14.unsqueeze(1).expand(-1, router_14.active_slots, -1).reshape(-1, d_model)
+        weighted_v = flat_w * expanded_v
+        state_15_hebb.squeeze(0).index_add_(0, flat_idx, weighted_v)
+
+    if DEVICE.type == "cuda":
+        torch.cuda.synchronize()
+    elapsed_ms_15 = (time.perf_counter() - t0) * 1000.0
+    throughput_ratio = elapsed_ms_14 / max(elapsed_ms_15, 1e-4)
+
+    # 1. State Equivalence Diagnostics (Dual Metrics)
+    ref_norm_14 = torch.norm(state_14).item()
+    diff_frob_15 = torch.norm(state_14 - state_15_hebb).item()
+    rel_frob_15 = (diff_frob_15 / ref_norm_14) if ref_norm_14 > 0 else float("nan")
+    max_abs_15 = torch.max(torch.abs(state_14 - state_15_hebb)).item()
+
+    # 2. Sampled Recall Check (1,000 of 20,000 facts)
+    cos_sims_15 = []
+    with torch.no_grad():
+        for idx_ev in eval_indices_14:
+            i = idx_ev.item()
+            w_q, idx, _ = router_14(keys_14[i:i + 1])
+            exp_idx = idx.unsqueeze(-1).expand(1, router_14.active_slots, d_model)
+            s_act = torch.gather(state_15_hebb, 1, exp_idx)
+            recalled = torch.matmul(w_q.unsqueeze(1), s_act).squeeze(1)
+            cos = F.cosine_similarity(recalled, vals_14[i:i + 1]).item()
+            cos_sims_15.append(cos)
+
+    mean_cos_15 = sum(cos_sims_15) / len(cos_sims_15)
+    recall_rate_15 = sum(1 for c in cos_sims_15 if c > 0.80) / len(cos_sims_15) * 100.0
+
+    print(f"  - Synchronized Sequential Delta Time: {elapsed_ms_14:.2f} ms ({num_facts_14/elapsed_ms_14*1000:.0f} facts/sec)")
+    print(f"  - Synchronized Batched Hebbian Time:  {elapsed_ms_15:.2f} ms ({num_facts_14/elapsed_ms_15*1000:.0f} facts/sec)")
+    print(f"  - PyTorch Batching Throughput Gain:   {throughput_ratio:.1f}x (vectorized ops vs serial Python loop)")
+    print(f"  - Reference Sequential State Norm:    {ref_norm_14:.4f}")
+    print(f"  - Absolute Frobenius Difference:      {diff_frob_15:.4f}")
+    print(f"  - Relative Frobenius Error:           {rel_frob_15:.4%} (reflects omitted error erasure)")
+    print(f"  - Maximum Absolute Error:             {max_abs_15:.6f} per state entry")
+    print(f"  - Sampled Mean Recall Cosine:         {mean_cos_15:.4f} (vs Seq: {mean_cos_14:.4f})")
+    print(f"  - Sampled High-Fidelity Recall:       {recall_rate_15:.1f}% (vs Seq: {recall_rate_14:.1f}%)")
+    print(f"  -> DIAGNOSTIC: While batched tensor ops yield high throughput and strong sampled recall")
+    print(f"     on mostly distinct addresses, the {rel_frob_15:.2%} relative Frobenius divergence confirms")
+    print(f"     that Hebbian superposition does not compute an equivalent Householder delta state.")
+    print(f"     True equivalent parallelization requires affine composition (e.g. chunkwise formulations).")
+    print(f"  -> PASSED: Synchronized Hebbian baseline benchmark completed with full error metrics logged.")
 
     print("\n" + "=" * 78)
-    print("  ALL 14 TESTS PASSED: SPIKE-DELTAGRID UPGRADED & VERIFIED!")
+    print("  ALL 15 TESTS PASSED: SPIKE-DELTAGRID UPGRADED & VERIFIED!")
     print("=" * 78)
 
 
