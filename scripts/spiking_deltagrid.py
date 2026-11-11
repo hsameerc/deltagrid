@@ -947,10 +947,10 @@ def run_all_tests():
     print(f"     on mostly distinct addresses, the {rel_frob_15:.2%} relative Frobenius divergence confirms")
     print(f"     that Hebbian superposition does not compute an equivalent Householder delta state.")
     print(f"     True equivalent parallelization requires affine composition (e.g. chunkwise formulations).")
-    print(f"  -> PASSED: Synchronized Hebbian baseline benchmark completed with full error metrics logged.")
+    print(f"  -> COMPLETED: Synchronized Hebbian baseline benchmark and diagnostic logging finished.")
 
     print("\n" + "=" * 78)
-    print("  ALL 15 TESTS PASSED: SPIKE-DELTAGRID UPGRADED & VERIFIED!")
+    print("  ALL 15 CHECKS COMPLETED: SPIKE-DELTAGRID DIAGNOSTICS & VERIFICATION SUITE")
     print("=" * 78)
 
 
